@@ -1,0 +1,5 @@
+# Los scripts y archivos que se ejecutan en Linux deben quedar con fin de línea LF también en Windows
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.env.example text eol=lf
