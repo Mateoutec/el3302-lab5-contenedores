@@ -8,6 +8,8 @@ TIPO_INSTANCIA="${TIPO_INSTANCIA:-t3.small}"
 export AWS_DEFAULT_REGION="${AWS_REGION:-$(aws configure get region 2>/dev/null || true)}"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 export AWS_PAGER=""
+# Git Bash (Windows) convierte argumentos como /aws/service/... o DeviceName=/dev/xvda en rutas de Windows
+export MSYS_NO_PATHCONV=1
 ESTADO="$DIR_AWS/.estado"
 LLAVE="$ESTADO/$NOMBRE.pem"
 mkdir -p "$ESTADO"

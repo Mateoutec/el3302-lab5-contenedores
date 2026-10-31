@@ -9,6 +9,8 @@ Este repositorio tiene dos aplicaciones. Cada una va en contenedores Docker con 
 | **Pregunta 1** | Predicciones de la Champions League, con arquitectura de 3 capas | `8000` | `app`, `mock-api`, `db` |
 | **Pregunta 2** | Marketing con IA: foto → 3 guiones → 3 fotos + video → red social | `8080` | `app`, `db` |
 
+**Demo desplegada en AWS (EC2, us-east-1):** [P1: http://34.234.97.246:8000](http://34.234.97.246:8000) · [P1 API: /docs](http://34.234.97.246:8000/docs) · [P2: http://34.234.97.246:8080](http://34.234.97.246:8080). Las capturas del despliegue están en [docs/img/evidencias/nube](docs/img/evidencias/nube).
+
 ```
 .
 ├── p1-champions/            Pregunta 1

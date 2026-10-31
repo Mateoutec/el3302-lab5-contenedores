@@ -1,5 +1,6 @@
 # Secretos y entornos locales
 .env
+deploy/nube.env
 .venv/
 __pycache__/
 *.pyc
