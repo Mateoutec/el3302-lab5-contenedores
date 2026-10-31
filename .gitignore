@@ -1,0 +1,13 @@
+# Secretos y entornos locales
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# Datos generados en ejecución local
+*.db
+p2-marketing/media/
+deploy/aws/.estado/
+deploy/aws/*.pem
+# Informe y video (se entregan aparte)
+entregables/

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Predicciones Champions{% endblock %}</title>
+  <link rel="stylesheet" href="/static/estilos.css">
+</head>
+<body>
+  <header class="barra">
+    <div class="contenedor barra__fila">
+      <a class="marca" href="/"><span class="marca__estrella">★</span> Predicciones Champions</a>
+      <nav>
+        <a href="/">Partidos</a>
+        <a href="/predicciones">Predicciones</a>
+        <a href="/docs">API</a>
+      </nav>
+    </div>
+  </header>
+  <main class="contenedor">
+    {% if ok %}<div class="aviso aviso--ok">{{ ok }}</div>{% endif %}
+    {% if error %}<div class="aviso aviso--error">{{ error }}</div>{% endif %}
+    {% block contenido %}{% endblock %}
+  </main>
+  <footer class="contenedor pie">
+    Lab 5 EL3302 · Arquitectura en 3 capas · Fuente de partidos: <code>{{ fuente }}</code> · Horas en {{ zona }}
+  </footer>
+</body>
+</html>

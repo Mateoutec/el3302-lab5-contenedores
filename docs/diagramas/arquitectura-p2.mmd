@@ -1,0 +1,23 @@
+flowchart LR
+  U(["Usuario<br/>(empresa)"]) -->|"HTTP :8080"| W
+  subgraph APP["Contenedor app · FastAPI · imagen p2-marketing (incluye FFmpeg)"]
+    direction TB
+    W["<b>Presentación</b><br/>web.py · plantillas Jinja2 · /api/campanas"]
+    S["<b>Negocio</b><br/>ServicioCampanas<br/>validaciones y estados de la campaña<br/>tareas en segundo plano"]
+    subgraph PROV["Proveedores (adaptadores intercambiables por variables de entorno)"]
+      direction LR
+      G["Guiones<br/>Claude visión + JSON<br/>o plantillas locales"]
+      I["3 fotos<br/>Pillow (local)<br/>o OpenAI gpt-image-1"]
+      V["Video 9:16<br/>FFmpeg"]
+      R["Publicación<br/>simulada · Instagram<br/>Graph API · TikTok API"]
+    end
+    DA["<b>Datos</b><br/>RepositorioCampanas (SQLAlchemy)<br/>AlmacenArchivos"]
+    W --> S
+    S --> G & I & V & R
+    S --> DA
+  end
+  DA --> DB[("PostgreSQL 17<br/>campanas · guiones<br/>recursos · publicaciones<br/>volumen pgdata")]
+  DA --> M[("Volumen media<br/>original, foto_1..3.jpg<br/>video.mp4")]
+  G -.-> CL["API de Claude"]
+  I -.-> OA["API de OpenAI"]
+  R -.-> IG["Instagram / TikTok"]

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block titulo %}Predicciones registradas{% endblock %}
+{% block contenido %}
+<section class="cabecera">
+  <div>
+    <h1>Predicciones registradas</h1>
+    <p class="tenue">{{ predicciones|length }} predicciones guardadas · 3 puntos por marcador exacto, 1 por acertar el resultado</p>
+  </div>
+</section>
+
+{% if ranking %}
+<section class="tarjeta">
+  <h2>Ranking</h2>
+  <ol class="ranking">
+    {% for autor, puntos in ranking %}<li><strong>{{ autor }}</strong> — {{ puntos }} pts</li>{% endfor %}
+  </ol>
+</section>
+{% endif %}
+
+{% if not predicciones %}
+  <p class="vacio">Todavía no hay predicciones. Elige un partido programado en <a class="enlace" href="/">Partidos</a>.</p>
+{% else %}
+<table class="tabla">
+  <thead>
+    <tr><th>#</th><th>Registrada</th><th>Autor</th><th>Partido</th><th>Fecha del partido</th><th>Predicción</th><th class="centro">Resultado real</th><th class="centro">Puntos</th></tr>
+  </thead>
+  <tbody>
+  {% for p in predicciones %}
+    <tr>
+      <td class="tenue">{{ p.id }}</td>
+      <td class="nowrap tenue">{{ fecha_local(p.creado_en) if p.creado_en else "" }}</td>
+      <td>{{ p.autor }}</td>
+      <td><a class="enlace" href="/partidos/{{ p.partido_id }}">{{ p.partido.equipo_local }} vs {{ p.partido.equipo_visitante }}</a></td>
+      <td class="nowrap">{{ fecha_local(p.partido.fecha_utc) }}</td>
+      <td>
+        {% if p.resultado.value == "LOCAL" %}Gana {{ p.partido.equipo_local }}{% elif p.resultado.value == "VISITANTE" %}Gana {{ p.partido.equipo_visitante }}{% else %}Empate{% endif %}
+        <strong>({{ p.goles_local }}-{{ p.goles_visitante }})</strong>
+      </td>
+      <td class="centro">{% if p.partido.resultado %}{{ p.partido.goles_local }}-{{ p.partido.goles_visitante }}{% else %}<span class="tenue">pendiente</span>{% endif %}</td>
+      <td class="centro">{{ p.puntos if p.puntos is not none else "—" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

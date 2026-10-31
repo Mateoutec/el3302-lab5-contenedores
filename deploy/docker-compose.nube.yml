@@ -1,0 +1,91 @@
+# Despliegue en la nube: las dos aplicaciones en un solo servidor, usando las
+# imágenes ya publicadas (no compila nada en el servidor).
+#   P1 -> http://<ip-publica>:8000      P2 -> http://<ip-publica>:8080
+# Variables en .env (ver nube.env.example).
+name: el3302-lab5
+
+services:
+  # ---------------- Pregunta 1 ----------------
+  champions:
+    image: ${IMAGE_PREFIX:?define IMAGE_PREFIX}/p1-champions:${TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://champions:${P1_DB_PASSWORD:?define P1_DB_PASSWORD}@champions-db:5432/champions
+      API_PARTIDOS_URL: ${API_PARTIDOS_URL:-http://mock-api:8081/v4}
+      API_PARTIDOS_TOKEN: ${API_PARTIDOS_TOKEN:-}
+      COMPETICION: ${COMPETICION:-CL}
+      ZONA_HORARIA: ${ZONA_HORARIA:-America/Lima}
+    depends_on:
+      champions-db:
+        condition: service_healthy
+      mock-api:
+        condition: service_healthy
+
+  mock-api:
+    image: ${IMAGE_PREFIX}/p1-mock-api:${TAG:-latest}
+    restart: unless-stopped
+
+  champions-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: champions
+      POSTGRES_USER: champions
+      POSTGRES_PASSWORD: ${P1_DB_PASSWORD}
+    volumes:
+      - champions-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U champions -d champions"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # ---------------- Pregunta 2 ----------------
+  marketing:
+    image: ${IMAGE_PREFIX}/p2-marketing:${TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgresql+psycopg://marketing:${P2_DB_PASSWORD:?define P2_DB_PASSWORD}@marketing-db:5432/marketing
+      MEDIA_DIR: /data/media
+      URL_PUBLICA: ${URL_PUBLICA:-http://localhost:8080}
+      PROVEEDOR_GUIONES: ${PROVEEDOR_GUIONES:-auto}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      MODELO_CLAUDE: ${MODELO_CLAUDE:-claude-opus-5-5}
+      PROVEEDOR_IMAGENES: ${PROVEEDOR_IMAGENES:-local}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      MODO_PUBLICACION: ${MODO_PUBLICACION:-simulado}
+      IG_USER_ID: ${IG_USER_ID:-}
+      IG_ACCESS_TOKEN: ${IG_ACCESS_TOKEN:-}
+      IG_GRAPH_VERSION: ${IG_GRAPH_VERSION:-v23.0}
+      IG_GRAPH_HOST: ${IG_GRAPH_HOST:-https://graph.facebook.com}
+      TIKTOK_ACCESS_TOKEN: ${TIKTOK_ACCESS_TOKEN:-}
+      TIKTOK_PRIVACIDAD: ${TIKTOK_PRIVACIDAD:-SELF_ONLY}
+    volumes:
+      - marketing-media:/data/media
+    depends_on:
+      marketing-db:
+        condition: service_healthy
+
+  marketing-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: marketing
+      POSTGRES_USER: marketing
+      POSTGRES_PASSWORD: ${P2_DB_PASSWORD}
+    volumes:
+      - marketing-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marketing -d marketing"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  champions-pgdata:
+  marketing-pgdata:
+  marketing-media:

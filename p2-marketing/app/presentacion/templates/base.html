@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% block cabeza %}{% endblock %}
+  <title>{% block titulo %}Estudio de Marketing IA{% endblock %}</title>
+  <link rel="stylesheet" href="/static/estilos.css">
+</head>
+<body>
+  <header class="barra">
+    <div class="contenedor barra__fila">
+      <a class="marca" href="/"><span class="marca__punto"></span> Estudio de Marketing IA</a>
+      <nav>
+        <a href="/">Nueva campaña</a>
+        <a href="/#historial">Historial</a>
+        <a href="/docs">API</a>
+      </nav>
+    </div>
+  </header>
+  <main class="contenedor">
+    {% if ok %}<div class="aviso aviso--ok">{{ ok }}</div>{% endif %}
+    {% if error %}<div class="aviso aviso--error">{{ error }}</div>{% endif %}
+    {% block contenido %}{% endblock %}
+  </main>
+  <footer class="contenedor pie">
+    Lab 5 EL3302 · Guiones: <strong>{{ proveedor_guiones }}</strong> · Fotos: <strong>{{ proveedor_imagenes }}</strong>
+    · Video: <strong>FFmpeg</strong> · Publicación: <strong>{{ modo_publicacion }}</strong>
+  </footer>
+</body>
+</html>

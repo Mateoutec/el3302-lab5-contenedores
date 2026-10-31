@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block contenido %}
+<section class="heroe">
+  <div>
+    <h1>De una foto a una campaña lista para publicar</h1>
+    <p class="tenue">Sube la foto de tu producto, elige uno de los 3 guiones que propone la IA y obtén 3 fotos y un video vertical para Instagram o TikTok.</p>
+    <ol class="flujo">
+      <li><strong>1</strong> Subes una foto</li>
+      <li><strong>2</strong> La IA propone 3 guiones</li>
+      <li><strong>3</strong> Eliges uno</li>
+      <li><strong>4</strong> 3 fotos + 1 video</li>
+      <li><strong>5</strong> Se publica en la red</li>
+    </ol>
+  </div>
+</section>
+
+<div class="columnas columnas--formulario">
+  <section class="tarjeta">
+    <h2>Nueva campaña</h2>
+    <form class="formulario" method="post" action="/campanas" enctype="multipart/form-data">
+      <label>Foto del producto o servicio
+        <input type="file" name="foto" accept="image/*" required>
+        <small class="tenue">JPG, PNG, WEBP o HEIC · máximo 10 MB</small>
+      </label>
+      <label>Empresa o marca
+        <input name="empresa" maxlength="80" required placeholder="Ej. Café Altura">
+      </label>
+      <label>Producto o servicio
+        <input name="producto" maxlength="160" required placeholder="Ej. café de especialidad de Villa Rica, 250 g">
+      </label>
+      <label>Público objetivo
+        <input name="publico" maxlength="160" placeholder="Ej. jóvenes profesionales que trabajan desde casa">
+      </label>
+      <div class="fila">
+        <label>Tono
+          <select name="tono">{% for t in tonos %}<option>{{ t }}</option>{% endfor %}</select>
+        </label>
+        <label>Red social
+          <select name="red_social">
+            <option value="INSTAGRAM">Instagram</option>
+            <option value="TIKTOK">TikTok</option>
+          </select>
+        </label>
+      </div>
+      <button class="boton" type="submit">Generar 3 guiones →</button>
+    </form>
+  </section>
+
+  <section class="tarjeta" id="historial">
+    <h2>Historial</h2>
+    {% if not campanas %}
+      <p class="tenue">Aún no hay campañas.</p>
+    {% else %}
+    <ul class="historial">
+      {% for c in campanas %}
+      <li>
+        <a href="/campanas/{{ c.id }}">
+          <img src="/media/{{ c.foto }}" alt="" loading="lazy">
+          <span>
+            <strong>{{ c.brief.empresa }}</strong>
+            <small>{{ c.brief.producto }}</small>
+          </span>
+          <span class="chip chip--{{ c.estado.value|lower }}">{{ c.estado.value|replace("_", " ")|lower }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

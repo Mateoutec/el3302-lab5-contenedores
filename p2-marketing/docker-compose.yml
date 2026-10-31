@@ -1,0 +1,52 @@
+# Pregunta 2 — App de marketing con IA + PostgreSQL
+# Uso:  cp .env.example .env  &&  docker compose up -d --build
+name: p2-marketing
+
+services:
+  app:
+    build: .
+    image: ${IMAGE_PREFIX:-el3302}/p2-marketing:${TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "${APP_PUERTO:-8080}:8080"
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-marketing}:${POSTGRES_PASSWORD:-marketing}@db:5432/${POSTGRES_DB:-marketing}
+      MEDIA_DIR: /data/media
+      URL_PUBLICA: ${URL_PUBLICA:-http://localhost:8080}
+      PROVEEDOR_GUIONES: ${PROVEEDOR_GUIONES:-auto}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      MODELO_CLAUDE: ${MODELO_CLAUDE:-claude-opus-5-5}
+      PROVEEDOR_IMAGENES: ${PROVEEDOR_IMAGENES:-local}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      MODELO_IMAGEN_OPENAI: ${MODELO_IMAGEN_OPENAI:-gpt-image-1}
+      MODO_PUBLICACION: ${MODO_PUBLICACION:-simulado}
+      IG_USER_ID: ${IG_USER_ID:-}
+      IG_ACCESS_TOKEN: ${IG_ACCESS_TOKEN:-}
+      IG_GRAPH_VERSION: ${IG_GRAPH_VERSION:-v23.0}
+      IG_GRAPH_HOST: ${IG_GRAPH_HOST:-https://graph.facebook.com}
+      TIKTOK_ACCESS_TOKEN: ${TIKTOK_ACCESS_TOKEN:-}
+      TIKTOK_PRIVACIDAD: ${TIKTOK_PRIVACIDAD:-SELF_ONLY}
+    volumes:
+      - media:/data/media
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-marketing}
+      POSTGRES_USER: ${POSTGRES_USER:-marketing}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-marketing}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:
+  media:

@@ -1,0 +1,52 @@
+# Pregunta 1 — App de predicciones Champions + PostgreSQL + API simulada
+# Uso:  cp .env.example .env  &&  docker compose up -d --build
+name: p1-champions
+
+services:
+  app:
+    build: .
+    image: ${IMAGE_PREFIX:-el3302}/p1-champions:${TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "${APP_PUERTO:-8000}:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-champions}:${POSTGRES_PASSWORD:-champions}@db:5432/${POSTGRES_DB:-champions}
+      API_PARTIDOS_URL: ${API_PARTIDOS_URL:-http://mock-api:8081/v4}
+      API_PARTIDOS_TOKEN: ${API_PARTIDOS_TOKEN:-}
+      COMPETICION: ${COMPETICION:-CL}
+      TEMPORADA: ${TEMPORADA:-}
+      ZONA_HORARIA: ${ZONA_HORARIA:-America/Lima}
+      SINCRONIZAR_AL_INICIAR: ${SINCRONIZAR_AL_INICIAR:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+      mock-api:
+        condition: service_healthy
+
+  mock-api:
+    build: ./mock_api
+    image: ${IMAGE_PREFIX:-el3302}/p1-mock-api:${TAG:-latest}
+    restart: unless-stopped
+    environment:
+      MOCK_FECHA_ANCLA: ${MOCK_FECHA_ANCLA:-}
+    # Publicado solo para poder mostrarlo como evidencia; la app lo usa por la red interna.
+    ports:
+      - "${MOCK_PUERTO:-8081}:8081"
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-champions}
+      POSTGRES_USER: ${POSTGRES_USER:-champions}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-champions}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:

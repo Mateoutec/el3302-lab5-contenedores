@@ -1,0 +1,12 @@
+flowchart TB
+  U(["Usuario<br/>(navegador o cliente REST)"]) -->|"HTTP :8000"| P
+  subgraph APP["Contenedor app · FastAPI · imagen p1-champions"]
+    direction TB
+    P["<b>1. Presentación</b><br/>presentacion/web.py (HTML Jinja2)<br/>presentacion/api.py (REST /api + /docs)"]
+    N["<b>2. Lógica de negocio</b><br/>ServicioPartidos · ServicioPredicciones<br/>reglas: marcador ↔ resultado, solo partidos<br/>programados, cálculo de puntos"]
+    D["<b>3. Acceso a datos</b><br/>RepositorioPartidos · RepositorioPredicciones (SQLAlchemy)<br/>ClienteApiPartidos (httpx)"]
+    P --> N --> D
+  end
+  D -->|"SQL"| DB[("PostgreSQL 17<br/>tablas partidos y predicciones<br/>volumen pgdata")]
+  D -->|"GET /v4/competitions/CL/matches"| API["Contenedor mock-api<br/>API simulada (contrato football-data.org v4)"]
+  API -.->|"alternativa: misma interfaz"| FD["api.football-data.org/v4<br/>(token gratuito)"]

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titulo %}Vista previa · {{ campana.brief.empresa }}{% endblock %}
+{% block contenido %}
+<p><a class="enlace" href="/campanas/{{ campana.id }}">← Volver a la campaña</a></p>
+<h1>Vista previa de la publicación</h1>
+<p class="tenue">{{ publicacion.detalle }} · ID {{ publicacion.id_externo }}</p>
+
+{% set guion = campana.guion_elegido %}
+{% set usuario = campana.brief.empresa|lower|replace(" ", "") %}
+<div class="telefonos">
+  <div class="telefono">
+    <div class="telefono__barra"><span class="avatar">{{ campana.brief.empresa[:1]|upper }}</span> <strong>{{ usuario }}</strong></div>
+    <div class="carrusel">
+      {% for f in campana.fotos %}<img src="/media/{{ f.ruta }}" alt="Foto {{ f.orden }}">{% endfor %}
+    </div>
+    <div class="telefono__texto">
+      <p>♡ &nbsp; ◯ &nbsp; ➤ <span class="tenue chico">· carrusel de {{ campana.fotos|length }} fotos (desliza)</span></p>
+      <p><strong>{{ usuario }}</strong> {{ guion.caption }}</p>
+      <p>{{ guion.llamado_accion }}</p>
+      <p class="hashtags">{{ guion.hashtags|join(" ") }}</p>
+    </div>
+  </div>
+
+  <div class="telefono telefono--video">
+    <video src="/media/{{ campana.video.ruta }}" controls autoplay muted playsinline loop></video>
+    <div class="telefono__sobre">
+      <strong>@{{ usuario }}</strong>
+      <p>{{ guion.gancho }}</p>
+      <p class="hashtags">{{ guion.hashtags[:4]|join(" ") }}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

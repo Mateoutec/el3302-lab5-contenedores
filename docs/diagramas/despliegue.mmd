@@ -1,0 +1,22 @@
+flowchart TB
+  DEV["PC del estudiante"] -->|"git push"| GH["GitHub<br/>repositorio + README"]
+  GH -->|"GitHub Actions:<br/>pytest + docker build"| REG[("GitHub Container Registry<br/>(o Docker Hub)<br/>p1-champions · p1-mock-api · p2-marketing")]
+  DEV -->|"deploy/aws/desplegar-ec2.sh<br/>AWS CLI + SSH"| CMP
+  subgraph AWS["AWS · EC2 t3.small · Amazon Linux 2023 + Docker"]
+    direction TB
+    CMP["/opt/el3302<br/>docker-compose.yml + .env"]
+    subgraph P1["Pregunta 1"]
+      C1["champions :8000"]
+      C2["mock-api"]
+      C3[("champions-db<br/>vol. champions-pgdata")]
+    end
+    subgraph P2["Pregunta 2"]
+      C4["marketing :8080"]
+      C5[("marketing-db<br/>vol. marketing-pgdata")]
+      C6[("vol. marketing-media")]
+    end
+    CMP --> P1 & P2
+  end
+  REG -->|"docker compose pull"| CMP
+  USR(["Usuarios en internet"]) -->|"http://IP:8000"| C1
+  USR -->|"http://IP:8080"| C4

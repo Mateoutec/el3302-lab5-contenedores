@@ -1,0 +1,35 @@
+sequenceDiagram
+  autonumber
+  actor U as Usuario
+  participant P as Presentación
+  participant N as Negocio
+  participant D as Acceso a datos
+  participant A as API de partidos
+  participant B as PostgreSQL
+  Note over P,B: Al iniciar el contenedor (requisito 2)
+  P->>N: sincronizar_con_reintentos()
+  N->>D: cliente.obtener_partidos("CL")
+  D->>A: GET /v4/competitions/CL/matches
+  A-->>D: JSON con 144 partidos
+  D-->>N: list[Partido]
+  N->>D: guardar_o_actualizar(partidos)
+  D->>B: INSERT / UPDATE partidos (clave id_externo)
+  Note over U,B: Listar partidos (requisito 3)
+  U->>P: GET /?jornada=4
+  P->>N: listar(estado, jornada)
+  N->>D: listar()
+  D->>B: SELECT partidos
+  P-->>U: tabla HTML
+  Note over U,B: Registrar y consultar predicciones (requisitos 4, 5 y 6)
+  U->>P: POST /partidos/{id}/predicciones
+  P->>N: registrar(id, autor, resultado, goles)
+  N->>N: valida nombre, goles 0–20, marcador coherente
+  N->>D: obtener partido (debe estar PROGRAMADO) y crear()
+  D->>B: INSERT predicciones (FK partido_id)
+  P-->>U: 303 → detalle con «Predicción registrada»
+  U->>P: GET /predicciones
+  P->>N: listar()
+  N->>D: listar() con JOIN a partidos
+  D->>B: SELECT
+  N-->>P: predicciones + puntos
+  P-->>U: tabla HTML + ranking

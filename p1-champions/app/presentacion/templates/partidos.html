@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block contenido %}
+<section class="cabecera">
+  <div>
+    <h1>Partidos de la Champions League</h1>
+    <p class="tenue">{{ total }} partidos guardados en la base de datos · mostrando {{ partidos|length }}</p>
+  </div>
+  <form method="post" action="/sincronizar">
+    <button class="boton boton--secundario" type="submit">↻ Sincronizar con la API</button>
+  </form>
+</section>
+
+<form class="filtros" method="get" action="/">
+  <label>Estado
+    <select name="estado">
+      <option value="">Todos</option>
+      {% for clave, nombre in estados.items() %}
+      <option value="{{ clave }}" {% if estado_sel == clave %}selected{% endif %}>{{ nombre }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Jornada
+    <select name="jornada">
+      <option value="">Todas</option>
+      {% for j in jornadas %}
+      <option value="{{ j }}" {% if jornada_sel == j|string %}selected{% endif %}>Jornada {{ j }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button class="boton" type="submit">Filtrar</button>
+</form>
+
+{% if not partidos %}
+  <p class="vacio">No hay partidos para mostrar. Si la base está vacía, pulsa «Sincronizar con la API».</p>
+{% else %}
+<table class="tabla">
+  <thead>
+    <tr><th>Fecha</th><th>Etapa</th><th class="der">Local</th><th class="centro">Marcador</th><th>Visitante</th><th>Estado</th><th class="centro">Predicciones</th><th></th></tr>
+  </thead>
+  <tbody>
+  {% for p in partidos %}
+    <tr>
+      <td class="nowrap">{{ fecha_local(p.fecha_utc) }}</td>
+      <td class="tenue">{{ etapas.get(p.etapa, p.etapa) }}{% if p.jornada %} · J{{ p.jornada }}{% endif %}</td>
+      <td class="der equipo">{{ p.equipo_local }}</td>
+      <td class="centro marcador">{% if p.goles_local is not none %}{{ p.goles_local }} - {{ p.goles_visitante }}{% else %}vs{% endif %}</td>
+      <td class="equipo">{{ p.equipo_visitante }}</td>
+      <td><span class="chip chip--{{ p.estado.value|lower }}">{{ estados[p.estado.value] }}</span></td>
+      <td class="centro">{{ conteo_predicciones.get(p.id, 0) }}</td>
+      <td><a class="enlace" href="/partidos/{{ p.id }}">{% if p.admite_predicciones %}Predecir →{% else %}Ver →{% endif %}</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

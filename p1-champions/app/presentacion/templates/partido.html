@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block titulo %}{{ partido.equipo_local }} vs {{ partido.equipo_visitante }}{% endblock %}
+{% block contenido %}
+<p><a class="enlace" href="/">← Volver a partidos</a></p>
+
+<section class="tarjeta partido">
+  <div class="partido__meta">
+    {{ etapas.get(partido.etapa, partido.etapa) }}{% if partido.jornada %} · Jornada {{ partido.jornada }}{% endif %}
+    · {{ fecha_local(partido.fecha_utc) }}
+    · <span class="chip chip--{{ partido.estado.value|lower }}">{{ estados[partido.estado.value] }}</span>
+  </div>
+  <div class="partido__fila">
+    <div class="partido__equipo">{{ partido.equipo_local }}<small>Local</small></div>
+    <div class="partido__marcador">
+      {% if partido.goles_local is not none %}{{ partido.goles_local }} - {{ partido.goles_visitante }}{% else %}vs{% endif %}
+    </div>
+    <div class="partido__equipo">{{ partido.equipo_visitante }}<small>Visitante</small></div>
+  </div>
+</section>
+
+<div class="columnas">
+  <section class="tarjeta">
+    <h2>Registrar predicción</h2>
+    {% if partido.admite_predicciones %}
+    <form method="post" action="/partidos/{{ partido.id }}/predicciones" class="formulario">
+      <label>Tu nombre
+        <input name="autor" maxlength="60" required placeholder="Ej. Mateo">
+      </label>
+      <fieldset>
+        <legend>Resultado</legend>
+        <label class="opcion"><input type="radio" name="resultado" value="LOCAL" required> Gana {{ partido.equipo_local }}</label>
+        <label class="opcion"><input type="radio" name="resultado" value="EMPATE"> Empate</label>
+        <label class="opcion"><input type="radio" name="resultado" value="VISITANTE"> Gana {{ partido.equipo_visitante }}</label>
+      </fieldset>
+      <div class="marcador-entrada">
+        <label>{{ partido.equipo_local }}<input type="number" name="goles_local" min="0" max="20" required></label>
+        <span>-</span>
+        <label>{{ partido.equipo_visitante }}<input type="number" name="goles_visitante" min="0" max="20" required></label>
+      </div>
+      <button class="boton" type="submit">Guardar predicción</button>
+    </form>
+    {% else %}
+    <p class="tenue">Este partido ya no admite predicciones (solo se predicen partidos programados).</p>
+    {% endif %}
+  </section>
+
+  <section class="tarjeta">
+    <h2>Predicciones de este partido ({{ predicciones|length }})</h2>
+    {% if predicciones %}
+    <table class="tabla tabla--compacta">
+      <thead><tr><th>Autor</th><th>Resultado</th><th class="centro">Marcador</th><th class="centro">Puntos</th></tr></thead>
+      <tbody>
+      {% for p in predicciones %}
+        <tr>
+          <td>{{ p.autor }}</td>
+          <td>{% if p.resultado.value == "LOCAL" %}Gana local{% elif p.resultado.value == "VISITANTE" %}Gana visitante{% else %}Empate{% endif %}</td>
+          <td class="centro">{{ p.goles_local }} - {{ p.goles_visitante }}</td>
+          <td class="centro">{{ p.puntos if p.puntos is not none else "—" }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="tenue">Aún no hay predicciones.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

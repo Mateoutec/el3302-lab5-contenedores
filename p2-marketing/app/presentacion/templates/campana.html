@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block cabeza %}{% if campana.en_proceso %}<meta http-equiv="refresh" content="3">{% endif %}{% endblock %}
+{% block titulo %}{{ campana.brief.empresa }} · campaña {{ campana.id }}{% endblock %}
+{% block contenido %}
+<section class="cabecera">
+  <div>
+    <p class="tenue"><a class="enlace" href="/">← Inicio</a> · Campaña #{{ campana.id }}</p>
+    <h1>{{ campana.brief.empresa }}</h1>
+    <p class="tenue">{{ campana.brief.producto }} · Público: {{ campana.brief.publico }} · Tono {{ campana.brief.tono|lower }}
+      · <span class="chip">{{ campana.brief.red_social.value|title }}</span></p>
+  </div>
+</section>
+
+<ol class="pasos">
+  {% for nombre in pasos %}
+  <li class="{% if loop.index0 < paso or campana.estado.value == 'PUBLICADA' %}hecho{% elif loop.index0 == paso %}actual{% endif %}">{{ loop.index }}. {{ nombre }}</li>
+  {% endfor %}
+</ol>
+
+{% if campana.en_proceso %}
+<div class="tarjeta progreso">
+  <span class="girando"></span>
+  {% if campana.estado.value == "GENERANDO_GUIONES" %}La IA está analizando la foto y escribiendo 3 guiones…
+  {% elif campana.estado.value == "GENERANDO_CONTENIDO" %}Generando las 3 fotos y el video vertical…
+  {% else %}Publicando en {{ campana.brief.red_social.value|title }}…{% endif %}
+  <small class="tenue">La página se actualiza sola.</small>
+</div>
+{% endif %}
+
+{% if campana.error %}
+<div class="aviso aviso--error">
+  {{ campana.error }}
+  {% if campana.estado.value == "ERROR" %}
+  <form method="post" action="/campanas/{{ campana.id }}/reintentar" class="en-linea"><button class="boton boton--chico">Reintentar</button></form>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="columnas columnas--campana">
+  <aside class="tarjeta">
+    <h2>Foto original</h2>
+    <img class="foto" src="/media/{{ campana.foto }}" alt="Foto subida">
+    {% if campana.descripcion_foto %}
+    <h3>Análisis de la foto</h3>
+    <p class="tenue">{{ campana.descripcion_foto }}</p>
+    {% endif %}
+    {% if campana.paleta %}
+    <div class="paleta">{% for c in campana.paleta %}<span style="background: {{ c }}" title="{{ c }}"></span>{% endfor %}</div>
+    {% endif %}
+    {% if campana.proveedor_guiones %}<p class="tenue chico">Guiones generados con: {{ campana.proveedor_guiones }}</p>{% endif %}
+  </aside>
+
+  <div>
+    {% if campana.guiones %}
+    <h2>Guiones propuestos</h2>
+    <div class="guiones">
+      {% for g in campana.guiones %}
+      {% set elegido = campana.guion_elegido_id == g.id %}
+      <article class="tarjeta guion {% if elegido %}guion--elegido{% elif campana.guion_elegido_id %}guion--atenuado{% endif %}">
+        <header>
+          <span class="numero">Guion {{ g.orden }}</span>
+          {% if elegido %}<span class="chip chip--publicada">Elegido</span>{% endif %}
+        </header>
+        <h3>{{ g.titulo }}</h3>
+        <p class="tenue chico">{{ g.enfoque }}</p>
+        <p class="gancho">“{{ g.gancho }}”</p>
+        <ol class="escenas">
+          {% for e in g.escenas %}
+          <li>
+            <strong>{{ e.texto_en_pantalla }}</strong>
+            <span>{{ e.narracion }}</span>
+            <small class="tenue">🎬 {{ e.descripcion_visual }}</small>
+          </li>
+          {% endfor %}
+        </ol>
+        <p class="chico"><strong>CTA:</strong> {{ g.llamado_accion }}</p>
+        <p class="chico caption">{{ g.caption }}</p>
+        <p class="hashtags">{{ g.hashtags|join(" ") }}</p>
+        {% if not campana.publicaciones and campana.estado.value in ["GUIONES_LISTOS", "CONTENIDO_LISTO", "ERROR"] %}
+        <form method="post" action="/campanas/{{ campana.id }}/guiones/{{ g.id }}">
+          <button class="boton {% if elegido %}boton--secundario{% endif %}">{% if elegido %}Regenerar con este guion{% else %}Elegir este guion{% endif %}</button>
+        </form>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if campana.recursos %}
+    <section class="tarjeta">
+      <div class="cabecera cabecera--chica">
+        <h2>Contenido generado</h2>
+        {% if campana.estado.value == "CONTENIDO_LISTO" %}
+        <form method="post" action="/campanas/{{ campana.id }}/publicar">
+          <button class="boton">Publicar en {{ campana.brief.red_social.value|title }} →</button>
+        </form>
+        {% endif %}
+      </div>
+      <div class="contenido">
+        <div class="fotos">
+          {% for f in campana.fotos %}
+          <a href="/media/{{ f.ruta }}" target="_blank"><img src="/media/{{ f.ruta }}?v={{ f.id }}" alt="Foto {{ f.orden }}"></a>
+          {% endfor %}
+        </div>
+        {% if campana.video %}
+        <div class="video">
+          <video src="/media/{{ campana.video.ruta }}?v={{ campana.video.id }}" poster="/media/{{ campana.video.ruta|replace('video.mp4', 'video_portada.jpg') }}" controls muted playsinline loop preload="metadata"></video>
+          <a class="enlace chico" href="/media/{{ campana.video.ruta }}" download>Descargar video</a>
+        </div>
+        {% endif %}
+      </div>
+      <p class="tenue chico">Fotos: {{ campana.fotos[0].proveedor if campana.fotos else "" }} · Video: {{ campana.video.proveedor if campana.video else "" }}</p>
+    </section>
+    {% endif %}
+
+    {% for p in campana.publicaciones %}
+    <section class="tarjeta publicado">
+      <h2>✅ Publicado en {{ p.red_social.value|title }} {% if p.modo == "SIMULADO" %}<span class="chip">simulado</span>{% endif %}</h2>
+      <p>{{ p.detalle }}</p>
+      <p class="tenue chico">ID: {{ p.id_externo }}</p>
+      {% if p.url %}<a class="boton boton--secundario" href="{{ p.url }}" {% if p.modo == "REAL" %}target="_blank"{% endif %}>Ver publicación</a>{% endif %}
+    </section>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+sequenceDiagram
+  autonumber
+  actor U as Usuario
+  participant W as Presentación
+  participant S as ServicioCampanas
+  participant IA as Proveedores (IA, FFmpeg)
+  participant BD as PostgreSQL + volumen media
+  participant RS as Red social
+  U->>W: POST /campanas (foto + empresa, producto, público, tono, red)
+  W->>S: crear()
+  S->>BD: original.jpg + campaña en GENERANDO_GUIONES
+  W-->>U: 303 → /campanas/{id} (se actualiza cada 3 s)
+  S->>IA: proponer(brief, foto) — segundo plano
+  IA-->>S: análisis de la foto + 3 guiones × 3 escenas
+  S->>BD: guiones → GUIONES_LISTOS
+  U->>W: POST /campanas/{id}/guiones/{g} (elige uno)
+  S->>IA: 1 foto por escena + video vertical — segundo plano
+  IA-->>S: foto_1..3.jpg + video.mp4 (13,5 s, 1080×1920)
+  S->>BD: recursos → CONTENIDO_LISTO
+  U->>W: POST /campanas/{id}/publicar
+  S->>RS: carrusel de 3 fotos + Reel (Instagram) o video (TikTok)
+  RS-->>S: id de la publicación
+  S->>BD: publicación → PUBLICADA
+  U->>W: GET /campanas/{id}/publicacion (vista previa)
